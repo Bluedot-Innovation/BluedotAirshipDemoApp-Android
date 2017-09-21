@@ -1,23 +1,36 @@
 package au.com.bluedot.urbanairshipdemoapp;
 
+import android.*;
+import android.Manifest;
+import android.annotation.TargetApi;
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.PendingIntent;
 import android.content.Context;
-import android.location.Location;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
+import android.provider.Settings;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 
 import com.urbanairship.UAirship;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 import au.com.bluedot.application.model.Proximity;
-import au.com.bluedot.application.model.geo.Fence;
 import au.com.bluedot.model.geo.LineString;
 import au.com.bluedot.point.ApplicationNotificationListener;
 import au.com.bluedot.point.ServiceStatusListener;
 import au.com.bluedot.point.net.engine.BDError;
 import au.com.bluedot.point.net.engine.BeaconInfo;
+import au.com.bluedot.point.net.engine.FenceInfo;
+import au.com.bluedot.point.net.engine.LocationInfo;
 import au.com.bluedot.point.net.engine.ServiceManager;
 import au.com.bluedot.point.net.engine.ZoneInfo;
 
@@ -89,29 +102,28 @@ public class BluedotAdapter {
      * This callback interface is used to subscribe to receive ApplicationNotification
      */
     private ApplicationNotificationListener applicationNotificationListener = new ApplicationNotificationListener() {
-
         /**
          * This callback happens when user is subscribed to Application Notification
          * and check into any fence under that Zone
-         * @param fence      - Fence triggered
+         * @param fenceInfo      - Fence triggered
          * @param zoneInfo   - Zone information Fence belongs to
-         * @param location   - geographical coordinate where trigger happened
+         * @param locationInfo   - geographical coordinate where trigger happened
          * @param isCheckOut - CheckOut will be tracked and delivered once device left the Fence
          */
         @Override
-        public void onCheckIntoFence(final Fence fence, final ZoneInfo zoneInfo, Location location, boolean isCheckOut) {
+        public void onCheckIntoFence(final FenceInfo fenceInfo, final ZoneInfo zoneInfo, LocationInfo locationInfo, Map<String, String> customData, boolean isCheckOut) {
             UAirship.shared().getPushManager().editTags()
                     .addTag("zone_" + zoneInfo.getZoneName())
-                    .addTag("fence_" + fence.getName())
+                    .addTag("fence_" + fenceInfo.getName())
                     .apply();
 
-            if(fence.getGeometry() instanceof LineString || isCheckOut==false) {
+            if(fenceInfo.getGeometry() instanceof LineString || isCheckOut==false) {
                 handler.postDelayed(new Runnable() {
                     @Override
                     public void run() {
                         UAirship.shared().getPushManager().editTags()
                                 .removeTag("zone_" + zoneInfo.getZoneName())
-                                .removeTag("fence_" + fence.getName())
+                                .removeTag("fence_" + fenceInfo.getName())
                                 .apply();
                     }
                 },TAG_EXPIRY_ms);
@@ -123,15 +135,15 @@ public class BluedotAdapter {
         /**
          * This callback happens when user is subscribed to Application Notification
          * and checked out from fence under that Zone
-         * @param fence     - Fence user is checked out from
+         * @param fenceInfo     - Fence user is checked out from
          * @param zoneInfo  - Zone information Fence belongs to
          * @param dwellTime - time spent inside the Fence; in minutes
          */
         @Override
-        public void onCheckedOutFromFence(Fence fence, ZoneInfo zoneInfo, int dwellTime) {
+        public void onCheckedOutFromFence(FenceInfo fenceInfo, ZoneInfo zoneInfo, int dwellTime, Map<String, String> customData) {
             UAirship.shared().getPushManager().editTags()
                     .removeTag("zone_" + zoneInfo.getZoneName())
-                    .removeTag("fence_" + fence.getName())
+                    .removeTag("fence_" + fenceInfo.getName())
                     .apply();
         }
 
@@ -140,12 +152,12 @@ public class BluedotAdapter {
          * and check into any beacon under that Zone
          * @param beaconInfo - Beacon triggered
          * @param zoneInfo   - Zone information Beacon belongs to
-         * @param location   - geographical coordinate where trigger happened
+         * @param locationInfo   - geographical coordinate where trigger happened
          * @param proximity  - the proximity at which the trigger occurred
          * @param isCheckOut - CheckOut will be tracked and delivered once device left the Beacon advertisement range
          */
         @Override
-        public void onCheckIntoBeacon(final BeaconInfo beaconInfo, final ZoneInfo zoneInfo, Location location, Proximity proximity, boolean isCheckOut) {
+        public void onCheckIntoBeacon(final BeaconInfo beaconInfo, final ZoneInfo zoneInfo, LocationInfo locationInfo, Proximity proximity, Map<String, String> customData, boolean isCheckOut) {
             UAirship.shared().getPushManager().editTags()
                     .addTag("zone_" + zoneInfo.getZoneName())
                     .addTag("beacon_" + beaconInfo.getName())
@@ -172,7 +184,7 @@ public class BluedotAdapter {
          * @param dwellTime  - time spent inside the Beacon area; in minutes
          */
         @Override
-        public void onCheckedOutFromBeacon(BeaconInfo beaconInfo, ZoneInfo zoneInfo, int dwellTime) {
+        public void onCheckedOutFromBeacon(BeaconInfo beaconInfo, ZoneInfo zoneInfo, int dwellTime, Map<String, String> customData) {
             UAirship.shared().getPushManager().editTags()
                     .removeTag("zone_" + zoneInfo.getZoneName())
                     .removeTag("beacon_" + beaconInfo.getName())
@@ -215,10 +227,14 @@ public class BluedotAdapter {
 
         if (mContext != null) {
             serviceManager = ServiceManager.getInstance(mContext);
+            Intent actionIntent = new Intent(mContext, MainActivity.class);
+            PendingIntent pendingIntent = PendingIntent.getActivity(mContext, 0, actionIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+            serviceManager.setForegroundServiceNotification(R.mipmap.ic_launcher,
+                    mContext.getString(R.string.foreground_notification_title),
+                    mContext.getString(R.string.foreground_notification_text), pendingIntent);
+
             if (!serviceManager.isBlueDotPointServiceRunning()) {
-
-                serviceManager.sendAuthenticationRequest(packageName, apiKey, userName, serviceStatusListener, restartMode, url);
-
+                    serviceManager.sendAuthenticationRequest(packageName, apiKey, userName, serviceStatusListener, restartMode, url);
             }
         }
     }
@@ -235,13 +251,20 @@ public class BluedotAdapter {
 
         if (mContext != null) {
             serviceManager = ServiceManager.getInstance(mContext);
-            if (!serviceManager.isBlueDotPointServiceRunning()) {
+            Intent actionIntent = new Intent(mContext, MainActivity.class);
+            PendingIntent pendingIntent = PendingIntent.getActivity(mContext, 0, actionIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+            serviceManager.setForegroundServiceNotification(R.mipmap.ic_launcher,
+                    mContext.getString(R.string.foreground_notification_title),
+                    mContext.getString(R.string.foreground_notification_text), pendingIntent);
 
+            if (!serviceManager.isBlueDotPointServiceRunning()) {
                 serviceManager.sendAuthenticationRequest(packageName, apiKey, userName, serviceStatusListener, restartMode);
 
             }
         }
     }
+
+
 
 
     /**

@@ -45,6 +45,9 @@
             android:exported="false">
         </service>
 
+        <service android:name="au.com.bluedot.point.net.engine.DataJobScheduler" android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
+
 
         <!-- OPTIONAL, if you want to receive push, push opened and registration completed intents -->
         <!-- Replace the receiver below with your package and class name -->
