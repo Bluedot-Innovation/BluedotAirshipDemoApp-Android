@@ -231,7 +231,7 @@ public class BluedotAdapter {
             PendingIntent pendingIntent = PendingIntent.getActivity(mContext, 0, actionIntent, PendingIntent.FLAG_UPDATE_CURRENT);
             serviceManager.setForegroundServiceNotification(R.mipmap.ic_launcher,
                     mContext.getString(R.string.foreground_notification_title),
-                    mContext.getString(R.string.foreground_notification_text), pendingIntent);
+                    mContext.getString(R.string.foreground_notification_text), pendingIntent, true);
 
             if (!serviceManager.isBlueDotPointServiceRunning()) {
                     serviceManager.sendAuthenticationRequest(packageName, apiKey, userName, serviceStatusListener, restartMode, url);
@@ -255,7 +255,7 @@ public class BluedotAdapter {
             PendingIntent pendingIntent = PendingIntent.getActivity(mContext, 0, actionIntent, PendingIntent.FLAG_UPDATE_CURRENT);
             serviceManager.setForegroundServiceNotification(R.mipmap.ic_launcher,
                     mContext.getString(R.string.foreground_notification_title),
-                    mContext.getString(R.string.foreground_notification_text), pendingIntent);
+                    mContext.getString(R.string.foreground_notification_text), pendingIntent, true);
 
             if (!serviceManager.isBlueDotPointServiceRunning()) {
                 serviceManager.sendAuthenticationRequest(packageName, apiKey, userName, serviceStatusListener, restartMode);
