@@ -141,8 +141,10 @@ public class MainApplication extends Application implements UAirship.OnReadyCall
         if(dwellTime != -1) {
             builder.addProperty("dwell_time", dwellTime);
         }
-        System.out.println("-- event data : " + builder.build().toJsonValue() );
-//        builder.build().track();
+        CustomEvent event = builder.build();
+
+        System.out.println("-- event data : " + event.toJsonValue() );
+        event.track();
     }
 
     @Override
