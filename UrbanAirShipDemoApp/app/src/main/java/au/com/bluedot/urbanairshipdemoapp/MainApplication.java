@@ -50,14 +50,11 @@ public class MainApplication extends Application implements UAirship.OnReadyCall
     public void onCreate() {
         super.onCreate();
 
-
         //take off UrbanAirship SDK
         initUrbanAirshipSdk();
 
         //start Point SDK
         initPointSDK();
-
-
     }
 
     public void initPointSDK() {
@@ -79,14 +76,11 @@ public class MainApplication extends Application implements UAirship.OnReadyCall
         {
             requestPermissions();
         }
-
     }
 
 
     private void initUrbanAirshipSdk() {
         UAirship.takeOff(this, this);
-
-
     }
 
     @Override
@@ -230,8 +224,4 @@ public class MainApplication extends Application implements UAirship.OnReadyCall
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);
     }
-
-
-
-
 }
