@@ -129,7 +129,7 @@ or add `Autopilot` configuration to `AndroidManifest.xml`
           android:value="com.urbanairship.Autopilot"/>
 ```
 
-4. Track `UrbanAirship` events in your checkins/checkouts
+4. Track `Airship` events in your checkins/checkouts
 
 ```java
 @Override
