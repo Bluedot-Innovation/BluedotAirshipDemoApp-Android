@@ -13,6 +13,7 @@ import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
+import android.widget.Toast;
 
 import com.urbanairship.UAirship;
 import com.urbanairship.analytics.CustomEvent;
@@ -39,7 +40,8 @@ import static android.app.Notification.PRIORITY_MAX;
 public class MainApplication extends Application implements UAirship.OnReadyCallback, ServiceStatusListener, ApplicationNotificationListener {
 
     private ServiceManager serviceManager;
-    private final String API_KEY = "9b2e2d00-bc8f-11e8-a698-02a5c41ebc5e"; //API key for the Point Demo App 
+   // private final String API_KEY = "d2abd470-81de-11e9-a0a1-027eaa9a4a16"; //API key for the Point Demo App 
+    private final String API_KEY = "0811c6a0-0251-11e9-aebf-02e673959816";
     private final boolean RESTART_MODE = false;
     private NotificationChannel notificationChannel = null;
     private final String EVENT_PLACE_ENTERED = "bluedot_place_entered";
@@ -102,6 +104,7 @@ public class MainApplication extends Application implements UAirship.OnReadyCall
 
     @Override
     public void onCheckIntoFence(FenceInfo fenceInfo, ZoneInfo zoneInfo, LocationInfo locationInfo, Map<String, String> customDataMap, boolean b) {
+       // Toast.makeText(getApplicationContext(),"CheckIn "+zoneInfo.getZoneName(),Toast.LENGTH_SHORT).show();
         sendCustomEvent(EVENT_PLACE_ENTERED, zoneInfo, customDataMap);
 
 

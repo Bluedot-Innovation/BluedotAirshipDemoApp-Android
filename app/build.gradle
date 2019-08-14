@@ -22,6 +22,33 @@ android {
         abortOnError false
     }
 
+    signingConfigs {
+        debug {
+            storeFile file("BluedotSignaturePointApp")
+            storePassword "Blue.Sign"
+            keyAlias "pointtestapp"
+            keyPassword "Blue.Sign"
+        }
+        release {
+            storeFile file("BluedotSignaturePointApp")
+            storePassword "Blue.Sign"
+            keyAlias "pointtestapp"
+            keyPassword "Blue.Sign"
+        }
+    }
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.debug
+            zipAlignEnabled true
+        }
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
+            zipAlignEnabled true
+        }
+    }
+
 }
 repositories {
     jcenter()
@@ -41,7 +68,7 @@ dependencies {
 
 
     //Bluedot Point SDK
-    implementation 'com.github.Bluedot-Innovation:PointSDK-Android:1.12.2'
+    implementation 'com.github.Bluedot-Innovation:PointSDK-Android:1.13.2'
 
 
 }
