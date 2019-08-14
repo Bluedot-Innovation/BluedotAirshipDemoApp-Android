@@ -1,6 +1,6 @@
-# UrbanAirship Events Example
+# Airship Events Example
 
-A sample project used to test the integration between UrbanAirship SDK and Bluedot Point SDK.
+A sample project used to test the integration between Airship SDK and Bluedot Point SDK.
 
 ## Getting started
 
@@ -14,23 +14,11 @@ This project depends on `PointSDK-Android` and `urbanairship-fcm`. Both dependen
 dependencies {
     ...
 
-    implementation 'com.github.Bluedot-Innovation:PointSDK-Android:1.12.2'
+    implementation 'com.github.Bluedot-Innovation:PointSDK-Android:1.13.3'
 }
 ```
 
-2. Request permissions in `AndroidManifest.xml`
-
-```xml
-<uses-permission android:name="android.permission.INTERNET" />
-<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-<uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-<uses-permission android:name="android.permission.VIBRATE" />
-<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-```
-
-3. Start `PointSDK` in the application's `onCreate`
+2. Start `PointSDK` in the application's `onCreate`
 
 ```java
 @Override
@@ -60,7 +48,7 @@ public void onCreate() {
 }
 ```
 
-4. Implement `Point SDK` callbacks
+3. Implement `Point SDK` callbacks
 
 ```java
 @Override
@@ -86,7 +74,7 @@ public void onCheckedOutFromBeacon(BeaconInfo beaconInfo, ZoneInfo zoneInfo, int
 
 ### Implement `urbanairship-fcm`
 
-UrbanAirship has to be initialised before sending any check-in/checkou-out events.
+Airship has to be initialised before sending any check-in/checkou-out events.
 
 1. Add the `urbanairship-fcm` module as a dependency in your application.
 
@@ -184,4 +172,4 @@ public void onCheckedOutFromFence(FenceInfo fenceInfo, ZoneInfo zoneInfo, int dw
 ```
 
 ## Next steps
-Full documentation can be found at https://docs.bluedot.io/android-sdk/ and https://docs.urbanairship.com/platform/android/ respectivelly.
+Full documentation can be found at https://docs.bluedot.io/android-sdk/ and https://docs.airship.com/platform/android/getting-started/ respectively.
