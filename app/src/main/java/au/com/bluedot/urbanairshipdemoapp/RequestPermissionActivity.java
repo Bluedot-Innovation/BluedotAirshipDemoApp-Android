@@ -26,8 +26,14 @@ public class RequestPermissionActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        String[] permissions = new String[2];
+        permissions[0] = Manifest.permission.ACCESS_FINE_LOCATION;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            permissions[1] = Manifest.permission.ACCESS_BACKGROUND_LOCATION;
+        }
+
         //Request permission required for location
-        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_REQUEST_CODE);
+        ActivityCompat.requestPermissions(this, permissions, PERMISSION_REQUEST_CODE);
     }
 
     @TargetApi(Build.VERSION_CODES.M)
@@ -46,7 +52,7 @@ public class RequestPermissionActivity extends AppCompatActivity {
                     ((MainApplication) getApplication()).initPointSDK();
                 } else {
 
-                    if (shouldShowRequestPermissionRationale(android.Manifest.permission.ACCESS_FINE_LOCATION) || shouldShowRequestPermissionRationale(android.Manifest.permission.ACCESS_COARSE_LOCATION)) {
+                    if (shouldShowRequestPermissionRationale(android.Manifest.permission.ACCESS_FINE_LOCATION)) {
 
                         AlertDialog alertDialog = new AlertDialog.Builder(this).create();
                         alertDialog.setTitle("Information");

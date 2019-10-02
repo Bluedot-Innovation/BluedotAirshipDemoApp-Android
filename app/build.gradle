@@ -1,16 +1,17 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 28
-
+    compileSdkVersion 29
 
     defaultConfig {
         applicationId "au.com.bluedot.urbanairshipdemoapp"
         minSdkVersion 16
-        targetSdkVersion 28
+        targetSdkVersion 29
+        buildToolsVersion "29.0.2"
         versionCode 1
         versionName "1.0"
     }
+
     buildTypes {
         release {
             minifyEnabled false
@@ -52,9 +53,6 @@ android {
 }
 repositories {
     jcenter()
-
-
-
 }
 
 
@@ -68,9 +66,7 @@ dependencies {
 
 
     //Bluedot Point SDK
-    implementation 'com.github.Bluedot-Innovation:PointSDK-Android:1.13.3'
-
-
+    implementation 'com.github.Bluedot-Innovation:PointSDK-Android:14.0.0'
 }
 
 apply plugin: 'com.google.gms.google-services'
