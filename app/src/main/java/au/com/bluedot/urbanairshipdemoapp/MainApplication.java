@@ -10,15 +10,12 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Build;
-import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
-import android.widget.Toast;
 
 import com.urbanairship.UAirship;
 import com.urbanairship.analytics.CustomEvent;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -40,8 +37,7 @@ import static android.app.Notification.PRIORITY_MAX;
 public class MainApplication extends Application implements UAirship.OnReadyCallback, ServiceStatusListener, ApplicationNotificationListener {
 
     private ServiceManager serviceManager;
-   // private final String API_KEY = "d2abd470-81de-11e9-a0a1-027eaa9a4a16"; //API key for the Point Demo App 
-    private final String API_KEY = "0811c6a0-0251-11e9-aebf-02e673959816";
+    private final String API_KEY = ""; //API key for the Point Demo App 
     private final boolean RESTART_MODE = false;
     private NotificationChannel notificationChannel = null;
     private final String EVENT_PLACE_ENTERED = "bluedot_place_entered";
@@ -60,22 +56,23 @@ public class MainApplication extends Application implements UAirship.OnReadyCall
     }
 
     public void initPointSDK() {
+        boolean locationPermissionGranted =
+                ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+        boolean backgroundPermissionGranted = (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q)
+                || ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED;
 
-        int checkPermissionCoarse = ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_COARSE_LOCATION);
-        int checkPermissionFine = ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION);
-
-        if(checkPermissionCoarse == PackageManager.PERMISSION_GRANTED && checkPermissionFine == PackageManager.PERMISSION_GRANTED) {
+        if (locationPermissionGranted && backgroundPermissionGranted) {
             serviceManager = ServiceManager.getInstance(this);
 
-            if(!serviceManager.isBlueDotPointServiceRunning()) {
+            if (!serviceManager.isBlueDotPointServiceRunning()) {
                 // Setting Notification for foreground service, required for Android Oreo and above.
                 // Setting targetAllAPIs to TRUE will display foreground notification for Android versions lower than Oreo
                 serviceManager.setForegroundServiceNotification(createNotification(), false);
-                serviceManager.sendAuthenticationRequest(API_KEY,this, RESTART_MODE);
+                serviceManager.sendAuthenticationRequest(API_KEY, this, RESTART_MODE);
+
+
             }
-        }
-        else
-        {
+        } else {
             requestPermissions();
         }
     }
@@ -104,7 +101,7 @@ public class MainApplication extends Application implements UAirship.OnReadyCall
 
     @Override
     public void onCheckIntoFence(FenceInfo fenceInfo, ZoneInfo zoneInfo, LocationInfo locationInfo, Map<String, String> customDataMap, boolean b) {
-       // Toast.makeText(getApplicationContext(),"CheckIn "+zoneInfo.getZoneName(),Toast.LENGTH_SHORT).show();
+        // Toast.makeText(getApplicationContext(),"CheckIn "+zoneInfo.getZoneName(),Toast.LENGTH_SHORT).show();
         sendCustomEvent(EVENT_PLACE_ENTERED, zoneInfo, customDataMap);
 
 
@@ -127,20 +124,20 @@ public class MainApplication extends Application implements UAirship.OnReadyCall
         CustomEvent.Builder builder = new CustomEvent.Builder(eventName);
         builder.setInteraction("location", zoneInfo.getZoneId());
         builder.addProperty("bluedot_zone_name", zoneInfo.getZoneName());
-        if(customDataMap != null && !customDataMap.isEmpty()) {
-            for(Map.Entry<String, String> data : customDataMap.entrySet()) {
+        if (customDataMap != null && !customDataMap.isEmpty()) {
+            for (Map.Entry<String, String> data : customDataMap.entrySet()) {
                 builder.addProperty(data.getKey(), data.getValue());
             }
 
         }
 
 
-        if(dwellTime != -1) {
+        if (dwellTime != -1) {
             builder.addProperty("dwell_time", dwellTime);
         }
         CustomEvent event = builder.build();
 
-        System.out.println("-- event data : " + event.toJsonValue() );
+        System.out.println("-- event data : " + event.toJsonValue());
         event.track();
     }
 
@@ -182,6 +179,7 @@ public class MainApplication extends Application implements UAirship.OnReadyCall
 
     /**
      * Creates notification channel and notification, required for foreground service notification.
+     *
      * @return notification
      */
     private Notification createNotification() {
