@@ -4,3 +4,5 @@
 /.gradle
 *.iml
 local.properties
+google-services.json
+airshipconfig.properties
