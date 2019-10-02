@@ -10,11 +10,11 @@ This project depends on `PointSDK-Android` and `urbanairship-fcm`. Both dependen
 
 1. Add `PointSDK-Android` module as a dependency to your application.
 
-```gradle
+```groovy
 dependencies {
     ...
 
-    implementation 'com.github.Bluedot-Innovation:PointSDK-Android:1.13.3'
+    implementation 'com.github.Bluedot-Innovation:PointSDK-Android:14.0.0'
 }
 ```
 
@@ -28,10 +28,12 @@ public void onCreate() {
     ...
 
     // start Point SDK
-    int checkPermissionCoarse = ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_COARSE_LOCATION);
-    int checkPermissionFine = ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION);
-
-    if(checkPermissionCoarse == PackageManager.PERMISSION_GRANTED && checkPermissionFine == PackageManager.PERMISSION_GRANTED) {
+    boolean locationPermissionGranted =
+                    ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+    boolean backgroundPermissionGranted = (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q)
+                    || ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED;
+    
+    if (locationPermissionGranted && backgroundPermissionGranted) {
         serviceManager = ServiceManager.getInstance(this);
 
         if(!serviceManager.isBlueDotPointServiceRunning()) {
@@ -78,18 +80,18 @@ Airship has to be initialised before sending any check-in/checkou-out events.
 
 1. Add the `urbanairship-fcm` module as a dependency in your application.
 
-```gradle
+```groovy
 dependencies {
     ...
 
-    implementation 'com.urbanairship.android:urbanairship-fcm:9.3.1'
-    implementation 'com.google.firebase:firebase-messaging:17.3.4'
+    implementation 'com.urbanairship.android:urbanairship-fcm:<version>'
+    implementation 'com.google.firebase:firebase-messaging:<version>'
 }
 ```
 
 2. Add `airshipconfig.properties` file to your application's `assets` directory
 
-```ini
+```
 developmentAppKey = your development UA app key 
 developmentAppSecret = your development UA app secret
 
