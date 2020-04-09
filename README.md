@@ -14,7 +14,15 @@ This project depends on `PointSDK-Android` and `urbanairship-fcm`. Both dependen
 dependencies {
     ...
 
-    implementation 'com.github.Bluedot-Innovation:PointSDK-Android:14.0.0'
+    implementation 'com.gitlab.bluedotio.android:point_sdk_android:15.0.0'
+}
+
+android {
+    ...
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 ```
 
