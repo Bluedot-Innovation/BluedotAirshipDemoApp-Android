@@ -4,4 +4,6 @@
     <string name="permission_needed">Bluedot Point SDK requires Location Services to start. Therefore granting the Location permission is mandatory, without that the SDK will not authenticate.</string>
     <string name="foreground_notification_title">Location Access</string>
     <string name="foreground_notification_text">This app is utilizing the location to trigger alerts in both background and foreground modes when you visit your favourite locations.</string>
+  <string name="initialize">Initialize</string>
+    <string name="reset">Reset</string>
 </resources>

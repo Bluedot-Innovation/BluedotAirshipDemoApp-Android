@@ -23,8 +23,18 @@
 
        <activity android:name=".RequestPermissionActivity"/>
 
+      <receiver
+          android:name=".AppGeoTriggerReceiver"
+          android:enabled="true"
+          android:exported="false"
+          >
+        <intent-filter>
+          <action android:name="io.bluedot.point.GEOTRIGGER" />
+        </intent-filter>
+      </receiver>
 
-        <service android:name=".MainFirebaseMessagingService">
+
+      <service android:name=".MainFirebaseMessagingService">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
