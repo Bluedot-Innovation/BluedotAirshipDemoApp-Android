@@ -66,8 +66,8 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     implementation 'androidx.appcompat:appcompat:1.2.0'
 
-    implementation 'com.urbanairship.android:urbanairship-fcm:9.3.1'
-    implementation 'com.google.firebase:firebase-messaging:17.3.4'
+    implementation 'com.urbanairship.android:urbanairship-fcm:14.1.1'
+    implementation 'com.google.firebase:firebase-messaging:21.0.1'
 
 
     //Bluedot Point SDK

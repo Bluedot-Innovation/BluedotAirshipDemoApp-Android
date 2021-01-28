@@ -13,10 +13,12 @@ import android.os.Build;
 import android.widget.Toast;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 import au.com.bluedot.point.net.engine.GeoTriggeringService;
 import au.com.bluedot.point.net.engine.InitializationResultListener;
 import au.com.bluedot.point.net.engine.ServiceManager;
 import com.urbanairship.UAirship;
+import com.urbanairship.push.notifications.NotificationChannelCompat;
 
 import static android.app.Notification.PRIORITY_MAX;
 
@@ -27,7 +29,7 @@ public class MainApplication extends Application implements UAirship.OnReadyCall
 
     private ServiceManager serviceManager;
     private final String PROJECT_ID = "<PROJECT-ID>"; //ProjectID for the App  from Canvas
-    private NotificationChannel notificationChannel = null;
+    private NotificationChannelCompat channelCompat = null;
 
 
     @Override
@@ -78,11 +80,11 @@ public class MainApplication extends Application implements UAirship.OnReadyCall
         uAirship.getPushManager().setUserNotificationsEnabled(true);
 
         //setting up notification channel
-        if (notificationChannel != null) {
+        if(channelCompat != null) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 uAirship.getPushManager()
-                        .getNotificationFactory()
-                        .setNotificationChannel(notificationChannel.getName().toString());
+                        .getNotificationChannelRegistry()
+                        .createNotificationChannel(channelCompat);
             }
         }
     }
@@ -128,7 +130,14 @@ public class MainApplication extends Application implements UAirship.OnReadyCall
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             channelId = "Bluedot" + getString(R.string.app_name);
             channelName = "Bluedot Service" + getString(R.string.app_name);
-            notificationChannel = new NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_DEFAULT);
+
+            channelCompat = new NotificationChannelCompat(channelId,
+                                                          channelName,
+                                                          NotificationManagerCompat.IMPORTANCE_DEFAULT);
+
+            NotificationChannel notificationChannel =
+                    new NotificationChannel(channelId, channelName,
+                                            NotificationManager.IMPORTANCE_DEFAULT);
             notificationChannel.enableLights(false);
             notificationChannel.setLightColor(Color.RED);
             notificationChannel.enableVibration(false);
