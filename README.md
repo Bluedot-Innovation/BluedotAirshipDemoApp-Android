@@ -14,7 +14,7 @@ This project depends on `PointSDK-Android` and `urbanairship-fcm`. Both dependen
 dependencies {
     ...
 
-    implementation 'com.gitlab.bluedotio.android:point_sdk_android:15.0.0'
+    implementation 'com.gitlab.bluedotio.android:point_sdk_android:15.3.0'
 }
 
 android {
@@ -35,50 +35,86 @@ public void onCreate() {
 
     ...
 
-    // start Point SDK
-    boolean locationPermissionGranted =
-                    ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
-    boolean backgroundPermissionGranted = (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q)
-                    || ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED;
-    
-    if (locationPermissionGranted && backgroundPermissionGranted) {
-        serviceManager = ServiceManager.getInstance(this);
+    // Initialize Point SDK and start Geo Trigger
+       boolean locationPermissionGranted =
+                ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
 
-        if(!serviceManager.isBlueDotPointServiceRunning()) {
-            // Setting Notification for foreground service, required for Android Oreo and above.
-            // Setting targetAllAPIs to TRUE will display foreground notification for Android versions lower than Oreo
-            serviceManager.setForegroundServiceNotification(createNotification(), false);
-            serviceManager.sendAuthenticationRequest("Your Bluedot API key", this, false);
+        if (locationPermissionGranted) {
+            serviceManager = ServiceManager.getInstance(this);
+
+            if (!serviceManager.isBluedotServiceInitialized()) {
+
+                InitializationResultListener resultListener = bdError -> {
+                    String text = "Initialization Result ";
+                    if(bdError != null)
+                        text = text + bdError.getReason();
+                    else {
+                        text = text + "Success ";
+                        startGeoTrigger();
+                    }
+                    Toast.makeText(getApplicationContext(), text, Toast.LENGTH_LONG).show();
+                };
+                serviceManager.initialize(PROJECT_ID, resultListener);
+            }
+        } else {
+            requestPermissions();
         }
-    }
-    else
-    {
-        requestPermissions();
     }
 }
 ```
 
-3. Implement `Point SDK` callbacks
+3. To receive callbacks, create a Receiver by extending `GeoTriggeringEventReceiver` and also add it in `AndroidManifest.xml`
+
+```xml
+     <receiver
+          android:name="yourpackagename.AppGeoTriggerReceiver"
+          android:enabled="true"
+          android:exported="false">
+        <intent-filter>
+          <action android:name="io.bluedot.point.GEOTRIGGER" />
+        </intent-filter>
+      </receiver>
+```
 
 ```java
-@Override
-public void onCheckIntoFence(FenceInfo fenceInfo, ZoneInfo zoneInfo, LocationInfolocationInfo, Map<String, String> customDataMap, boolean b) {
-    ...
-}
+public class AppGeoTriggerReceiver extends GeoTriggeringEventReceiver {
+    private final String EVENT_PLACE_ENTERED = "bluedot_place_entered";
+    private final String EVENT_PLACE_EXITED = "bluedot_place_exited";
 
-@Override
-public void onCheckedOutFromFence(FenceInfo fenceInfo, ZoneInfo zoneInfo, int dwellTime,Map<String, String> customDataMap) {
-    ...
-}
+    /**
+     * This method is invoked whenever the set of zones is updated. There are a number of situations
+     * when zone updates can happen, such as initialising the SDK, periodic update, significant location
+     * change or zone sync event from Canvas.
+     * @param zones List of zones associated with the projectId
+     */
+    @Override public void onZoneInfoUpdate(@NotNull List<ZoneInfo> zones, @NotNull Context context) {
+        ...
+    }
 
-@Override
-public void onCheckIntoBeacon(BeaconInfo beaconInfo, ZoneInfo zoneInfo, LocationInfolocationInfo, Proximity proximity, Map<String, String> customDataMap, boolean b) {
-    ...
-}
+    /**
+     * This method is invoked when the SDK registers an entry event into a geofeature.
+     * There can be only one entry event per zone. However, after the minimum retrigger time lapses,
+     * or a corresponding exit event occurs, the entry event may occur again.
+     * @param entryEvent Provides details of the entry event.
+     */
+    @Override
+    public void onZoneEntryEvent(@NotNull ZoneEntryEvent entryEvent, @NotNull Context context) {
+        ...
+    }
 
-@Override
-public void onCheckedOutFromBeacon(BeaconInfo beaconInfo, ZoneInfo zoneInfo, int dwellTime,Map<String, String> customDataMap) {
-    ...
+    /**
+     * This method is invoked when the SDK registers an exit event. An exit event can be triggered if
+     * the geofeature is configured to trigger on exit. The option to enable exit events can be found
+     * under project and zone configuration on Canvas. An exit event is a pending event and might occur
+     * hours later after an entry event. Currently there is timeout for an exit of 24 hours. If an
+     * exit wasn't triggered by that time, an automatic exit event will be registered.
+     * @param exitEvent Provides details of the exit event.
+     */
+    @Override
+    public void onZoneExitEvent(@NotNull ZoneExitEvent exitEvent, @NotNull Context context) {
+        ...
+    }
+    
 }
 ```
 
@@ -139,47 +175,53 @@ or add `Autopilot` configuration to `AndroidManifest.xml`
           android:value="com.urbanairship.Autopilot"/>
 ```
 
-4. Track `Airship` events in your checkins/checkouts
+4. Track `Airship` events in your ZoneEntry/ZoneExits
 
 ```java
 @Override
-public void onCheckIntoFence(FenceInfo fenceInfo, ZoneInfo zoneInfo, LocationInfo locationInfo, Map<String, String> customDataMap, boolean b) {
-    CustomEvent.Builder builder = new CustomEvent.Builder("bluedot_place_entered");
-    builder.setInteraction("location", zoneInfo.getZoneId());
-    builder.addProperty("bluedot_zone_name", zoneInfo.getZoneName());
-    if(customDataMap != null && !customDataMap.isEmpty()) {
-        for(Map.Entry<String, String> data : customDataMap.entrySet()) {
-            builder.addProperty(data.getKey(), data.getValue());
-        }
-    }
-
-    if(dwellTime != -1) {
-        builder.addProperty("dwell_time", dwellTime);
-    }
-
-    CustomEvent event = builder.build();
-    event.track();
+public void onZoneEntryEvent(@NotNull ZoneEntryEvent entryEvent, @NotNull Context context) {
+    sendCustomEvent("bluedot_place_entered", entryEvent.getZoneInfo(), entryEvent.getZoneInfo().getCustomData());
+    ...
 }
 
-@Override
-public void onCheckedOutFromFence(FenceInfo fenceInfo, ZoneInfo zoneInfo, int dwellTime, Map<String, String> customDataMap) { {
-    CustomEvent.Builder builder = new CustomEvent.Builder("bluedot_place_exited");
-    builder.setInteraction("location", zoneInfo.getZoneId());
-    builder.addProperty("bluedot_zone_name", zoneInfo.getZoneName());
-    if(customDataMap != null && !customDataMap.isEmpty()) {
-        for(Map.Entry<String, String> data : customDataMap.entrySet()) {
-            builder.addProperty(data.getKey(), data.getValue());
-        }
-    }
 
-    if(dwellTime != -1) {
-        builder.addProperty("dwell_time", dwellTime);
-    }
-
-    CustomEvent event = builder.build();
-    event.track();
+ @Override
+public void onZoneExitEvent(@NotNull ZoneExitEvent exitEvent, @NotNull Context context) {
+    sendCustomEvent("bluedot_place_exited", exitEvent.getZoneInfo(), exitEvent.getDwellTime(), exitEvent.getZoneInfo().getCustomData());
+    ...
 }
+
+ private void sendCustomEvent(String eventName, ZoneInfo zoneInfo, int dwellTime, Map<String, String> customDataMap) {
+        //        name: "bluedot_place_exited"
+        //        interaction_type: "location"
+        //        interaction_id: zone_id
+        //        properties: {
+        //            bluedot_zone_name: <zone_name>
+        //                    dwell_time: <dwell_time>
+        //  <all custom data>
+        //        }
+        CustomEvent.Builder builder = new CustomEvent.Builder(eventName);
+        builder.setInteraction("location", zoneInfo.getZoneId());
+        builder.addProperty("bluedot_zone_name", zoneInfo.getZoneName());
+        if (customDataMap != null && !customDataMap.isEmpty()) {
+            for (Map.Entry<String, String> data : customDataMap.entrySet()) {
+                builder.addProperty(data.getKey(), data.getValue());
+            }
+
+        }
+
+
+        if (dwellTime != -1) {
+            builder.addProperty("dwell_time", dwellTime);
+        }
+        CustomEvent event = builder.build();
+
+        System.out.println("-- event data : " + event.toJsonValue());
+        event.track();
+    }
+
+
 ```
 
 ## Next steps
-Full documentation can be found at https://docs.bluedot.io/android-sdk/ and https://docs.airship.com/platform/android/getting-started/ respectively.
+Full documentation can be found at https://docs.bluedot.io/airship-integration/urban-airship-android-integration/ and https://docs.airship.com/platform/android/getting-started/ respectively.
