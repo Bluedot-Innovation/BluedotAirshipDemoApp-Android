@@ -26,11 +26,8 @@ public class RequestPermissionActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        String[] permissions = new String[2];
+        String[] permissions = new String[1];
         permissions[0] = Manifest.permission.ACCESS_FINE_LOCATION;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            permissions[1] = Manifest.permission.ACCESS_BACKGROUND_LOCATION;
-        }
 
         //Request permission required for location
         ActivityCompat.requestPermissions(this, permissions, PERMISSION_REQUEST_CODE);
