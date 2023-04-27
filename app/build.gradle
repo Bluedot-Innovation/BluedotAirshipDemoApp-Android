@@ -1,77 +1,58 @@
-apply plugin: 'com.android.application'
+plugins {
+  id 'com.android.application'
+  id 'org.jetbrains.kotlin.android'
+}
 
 android {
-    compileSdkVersion 29
+  compileSdk 33
 
-    defaultConfig {
-        applicationId "au.com.bluedot.urbanairshipdemoapp"
-        minSdkVersion 16
-        targetSdkVersion 29
-        buildToolsVersion "29.0.2"
-        versionCode 1
-        versionName "1.0"
-    }
+  defaultConfig {
+    applicationId "io.bluedot.airshipdemo"
+    minSdk 21
+    targetSdk 31
+    versionCode 1
+    versionName "1.0"
 
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-        }
-    }
+    testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+  }
 
-    lintOptions {
-        abortOnError false
+  buildTypes {
+    release {
+      minifyEnabled false
+      proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
     }
-
-    signingConfigs {
-        debug {
-            storeFile file("BluedotSignaturePointApp")
-            storePassword "Blue.Sign"
-            keyAlias "pointtestapp"
-            keyPassword "Blue.Sign"
-        }
-        release {
-            storeFile file("BluedotSignaturePointApp")
-            storePassword "Blue.Sign"
-            keyAlias "pointtestapp"
-            keyPassword "Blue.Sign"
-        }
-    }
-    buildTypes {
-        debug {
-            signingConfig signingConfigs.debug
-            zipAlignEnabled true
-        }
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.release
-            zipAlignEnabled true
-        }
-    }
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
-
+  }
+  compileOptions {
+    sourceCompatibility JavaVersion.VERSION_1_8
+    targetCompatibility JavaVersion.VERSION_1_8
+  }
+  kotlinOptions {
+    jvmTarget = '1.8'
+  }
 }
-repositories {
-    jcenter()
-}
-
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
-    testImplementation 'junit:junit:4.12'
-    implementation 'androidx.appcompat:appcompat:1.2.0'
 
-    implementation 'com.urbanairship.android:urbanairship-fcm:14.1.1'
-    implementation 'com.google.firebase:firebase-messaging:21.0.1'
+  implementation 'androidx.core:core-ktx:1.7.0'
+  implementation 'androidx.appcompat:appcompat:1.6.1'
+  implementation 'com.google.android.material:material:1.8.0'
+  implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+  testImplementation 'junit:junit:4.13.2'
+  androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+  androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
 
+  //Bluedot Point SDK
+  implementation 'com.gitlab.bluedotio.android:point_sdk_android:15.5.3'
 
-    //Bluedot Point SDK
-    implementation 'com.gitlab.bluedotio.android:point_sdk_android:15.3.0'
+  def airshipVersion = "16.8.0"
+
+  // ADM & FCM push providers
+  implementation "com.urbanairship.android:urbanairship-fcm:$airshipVersion"
+  implementation "com.urbanairship.android:urbanairship-adm:$airshipVersion"
+
+  // In-App Messaging
+  implementation "com.urbanairship.android:urbanairship-automation:$airshipVersion"
+
+  // Message Center
+  implementation "com.urbanairship.android:urbanairship-message-center:$airshipVersion"
 }
-
-apply plugin: 'com.google.gms.google-services'
