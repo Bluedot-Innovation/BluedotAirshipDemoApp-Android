@@ -1,47 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="au.com.bluedot.urbanairshipdemoapp" >
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="io.bluedot.airshipdemo"
+    >
 
-    <application
-        android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
-        android:name=".MainApplication"
-        android:supportsRtl="true"
-        android:theme="@style/AppTheme" >
-        <activity android:name=".MainActivity" >
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
+  <application
+      android:allowBackup="true"
+      android:dataExtractionRules="@xml/data_extraction_rules"
+      android:fullBackupContent="@xml/backup_rules"
+      android:icon="@mipmap/ic_launcher"
+      android:label="@string/app_name"
+      android:name=".MainApplication"
+      android:roundIcon="@mipmap/ic_launcher_round"
+      android:supportsRtl="true"
+      android:theme="@style/Theme.AppCompat"
+      tools:targetApi="31"
+      >
+    <activity
+        android:name=".MainActivity"
+        android:exported="true"
+        >
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+        <category android:name="android.intent.category.LAUNCHER" />
+      </intent-filter>
+    </activity>
 
-        <meta-data android:name="com.google.android.gms.version"
-        android:value="@integer/google_play_services_version" />
+    <activity android:name=".RequestPermissionActivity"/>
 
+    <receiver
+        android:name=".AppGeoTriggerReceiver"
+        android:enabled="true"
+        android:exported="false"
+        >
+      <intent-filter>
+        <action android:name="io.bluedot.point.GEOTRIGGER" />
+      </intent-filter>
+    </receiver>
 
-       <activity android:name=".RequestPermissionActivity"/>
+    <meta-data android:name="com.urbanairship.autopilot"
+        android:value="io.bluedot.airshipdemo.AirshipAutopilot" />
 
-      <receiver
-          android:name=".AppGeoTriggerReceiver"
-          android:enabled="true"
-          android:exported="false"
-          >
-        <intent-filter>
-          <action android:name="io.bluedot.point.GEOTRIGGER" />
-        </intent-filter>
-      </receiver>
+  </application>
 
-
-      <service android:name=".MainFirebaseMessagingService">
-            <intent-filter>
-                <action android:name="com.google.firebase.MESSAGING_EVENT" />
-            </intent-filter>
-        </service>
-
-
-        <service android:name=".MainFirebaseInstanceIdService"/>
-    </application>
+  <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+  <uses-feature
+      android:name="android.hardware.location.gps"
+      android:required="true" />
+  <uses-feature
+      android:name="android.hardware.location.network"
+      android:required="true" />
+  <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
 </manifest>
