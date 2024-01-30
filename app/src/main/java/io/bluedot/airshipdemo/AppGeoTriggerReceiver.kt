@@ -18,7 +18,7 @@ class AppGeoTriggerReceiver : GeoTriggeringEventReceiver() {
    * change or zone sync event from Canvas.
    * @param zones List of zones associated with the projectId
    */
-  override fun onZoneInfoUpdate(zones: List<ZoneInfo?>, context: Context) {
+  override fun onZoneInfoUpdate(zones: List<ZoneInfo>, context: Context) {
     Toast.makeText(
       context, "Rules Updated",
       Toast.LENGTH_LONG
@@ -35,9 +35,9 @@ class AppGeoTriggerReceiver : GeoTriggeringEventReceiver() {
     val entryDetails = "Entered zone " + entryEvent.zoneInfo.zoneName
       .toString() + " via fence " + entryEvent.fenceInfo.name
     var customDataString = ""
-    if (entryEvent.zoneInfo.customData != null) {
+    if (entryEvent.zoneInfo.getCustomData() != null) {
       customDataString =
-        entryEvent.zoneInfo.customData.toString()
+        entryEvent.zoneInfo.getCustomData().toString()
     }
 
     Toast.makeText(
@@ -49,7 +49,7 @@ class AppGeoTriggerReceiver : GeoTriggeringEventReceiver() {
       EVENT_PLACE_ENTERED,
       entryEvent.zoneInfo,
       -1,
-      entryEvent.zoneInfo.customData
+      entryEvent.zoneInfo.getCustomData()
     )
   }
 
@@ -62,8 +62,8 @@ class AppGeoTriggerReceiver : GeoTriggeringEventReceiver() {
    * @param exitEvent Provides details of the exit event.
    */
   override fun onZoneExitEvent(exitEvent: ZoneExitEvent, context: Context) {
-    val exitDetails = "Exited zone" + exitEvent.getZoneInfo().getZoneName()
-    val dwellT = "Dwell time: " + exitEvent.getDwellTime().toString() + " minutes"
+    val exitDetails = "Exited zone" + exitEvent.zoneInfo.zoneName
+    val dwellT = "Dwell time: " + exitEvent.dwellTime.toString() + " minutes"
     Toast.makeText(
       context, exitDetails + dwellT,
       Toast.LENGTH_LONG
@@ -72,7 +72,7 @@ class AppGeoTriggerReceiver : GeoTriggeringEventReceiver() {
       EVENT_PLACE_EXITED,
       exitEvent.zoneInfo,
       exitEvent.dwellTime,
-      exitEvent.zoneInfo.customData
+      exitEvent.zoneInfo.getCustomData()
     )
   }
 
