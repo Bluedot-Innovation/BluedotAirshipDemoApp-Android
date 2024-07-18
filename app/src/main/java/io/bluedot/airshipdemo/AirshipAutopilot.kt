@@ -13,8 +13,8 @@ class AirshipAutopilot : Autopilot() {
   override fun createAirshipConfigOptions(context: Context): AirshipConfigOptions? {
     val builder = AirshipConfigOptions.newBuilder()
 
-    builder.setDevelopmentAppKey("YOUR DEV APP KEY")
-    builder.setDevelopmentAppSecret("YOUR DEV APP SECRET")
+    builder.setDevelopmentAppKey("YOUR DEV APP KEY") // Should be taken from Airship Project Settings -> Project Details -> APP KEY
+    builder.setDevelopmentAppSecret("YOUR DEV APP SECRET") // Should be taken from Airship Project Settings -> Project Details -> SECRET
 
     builder.setProductionAppKey("YOUR PROD APP KEY")
     builder.setProductionAppSecret("YOUR PROD APP SECRET")

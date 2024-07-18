@@ -3,9 +3,9 @@ package io.bluedot.airshipdemo
 import android.content.Context
 import android.widget.Toast
 import au.com.bluedot.point.net.engine.GeoTriggeringEventReceiver
-import au.com.bluedot.point.net.engine.ZoneEntryEvent
-import au.com.bluedot.point.net.engine.ZoneExitEvent
+import au.com.bluedot.point.net.engine.event.GeoTriggerEvent
 import au.com.bluedot.point.net.engine.ZoneInfo
+import au.com.bluedot.point.net.engine.event.NotificationZoneInfo
 import com.urbanairship.analytics.CustomEvent.Builder
 
 class AppGeoTriggerReceiver : GeoTriggeringEventReceiver() {
@@ -18,7 +18,7 @@ class AppGeoTriggerReceiver : GeoTriggeringEventReceiver() {
    * change or zone sync event from Canvas.
    * @param zones List of zones associated with the projectId
    */
-  override fun onZoneInfoUpdate(zones: List<ZoneInfo>, context: Context) {
+  override fun onZoneInfoUpdate(context: Context) {
     Toast.makeText(
       context, "Rules Updated",
       Toast.LENGTH_LONG
@@ -31,13 +31,13 @@ class AppGeoTriggerReceiver : GeoTriggeringEventReceiver() {
    * or a corresponding exit event occurs, the entry event may occur again.
    * @param entryEvent Provides details of the entry event.
    */
-  override fun onZoneEntryEvent(entryEvent: ZoneEntryEvent, context: Context) {
-    val entryDetails = "Entered zone " + entryEvent.zoneInfo.zoneName
-      .toString() + " via fence " + entryEvent.fenceInfo.name
+  override fun onZoneEntryEvent(entryEvent: GeoTriggerEvent, context: Context) {
+    val entryDetails = "Entered zone " + entryEvent.zoneInfo.name + " via fence " +
+            entryEvent.entryEvent()?.fenceName
     var customDataString = ""
-    if (entryEvent.zoneInfo.getCustomData() != null) {
+    if (entryEvent.zoneInfo.customData != null) {
       customDataString =
-        entryEvent.zoneInfo.getCustomData().toString()
+        entryEvent.zoneInfo.customData.toString()
     }
 
     Toast.makeText(
@@ -49,7 +49,7 @@ class AppGeoTriggerReceiver : GeoTriggeringEventReceiver() {
       EVENT_PLACE_ENTERED,
       entryEvent.zoneInfo,
       -1,
-      entryEvent.zoneInfo.getCustomData()
+      entryEvent.zoneInfo.customData
     )
   }
 
@@ -61,9 +61,9 @@ class AppGeoTriggerReceiver : GeoTriggeringEventReceiver() {
    * exit wasn't triggered by that time, an automatic exit event will be registered.
    * @param exitEvent Provides details of the exit event.
    */
-  override fun onZoneExitEvent(exitEvent: ZoneExitEvent, context: Context) {
-    val exitDetails = "Exited zone" + exitEvent.zoneInfo.zoneName
-    val dwellT = "Dwell time: " + exitEvent.dwellTime.toString() + " minutes"
+  override fun onZoneExitEvent(exitEvent: GeoTriggerEvent, context: Context) {
+    val exitDetails = "Exited zone" + exitEvent.zoneInfo.name
+    val dwellT = "Dwell time: " + exitEvent.exitEvent()?.dwellTime.toString() + " milliseconds"
     Toast.makeText(
       context, exitDetails + dwellT,
       Toast.LENGTH_LONG
@@ -71,14 +71,14 @@ class AppGeoTriggerReceiver : GeoTriggeringEventReceiver() {
     sendCustomEvent(
       EVENT_PLACE_EXITED,
       exitEvent.zoneInfo,
-      exitEvent.dwellTime,
-      exitEvent.zoneInfo.getCustomData()
+      exitEvent.exitEvent()?.dwellTime?.toInt() ?: 0,
+      exitEvent.zoneInfo.customData
     )
   }
 
   private fun sendCustomEvent(
     eventName: String,
-    zoneInfo: ZoneInfo,
+    zoneInfo: NotificationZoneInfo,
     dwellTime: Int,
     customDataMap: Map<String, String>?
   ) {
@@ -91,8 +91,8 @@ class AppGeoTriggerReceiver : GeoTriggeringEventReceiver() {
     //  <all custom data>
     //        }
     val builder = Builder(eventName)
-    builder.setInteraction("location", zoneInfo.zoneId)
-    zoneInfo.zoneName?.let { builder.addProperty("bluedot_zone_name", it) }
+    builder.setInteraction("location", zoneInfo.id.toString())
+    zoneInfo.name.let { builder.addProperty("bluedot_zone_name", it) }
     if (customDataMap != null && customDataMap.isNotEmpty()) {
       for ((key, value) in customDataMap) {
         builder.addProperty(key, value)
