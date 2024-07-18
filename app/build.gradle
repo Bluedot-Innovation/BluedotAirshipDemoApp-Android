@@ -4,12 +4,12 @@ plugins {
 }
 
 android {
-  compileSdk 33
+  compileSdkVersion 34
 
   defaultConfig {
     applicationId "io.bluedot.airshipdemo"
-    minSdk 21
-    targetSdk 31
+    minSdkVersion 26
+    targetSdkVersion 34
     versionCode 1
     versionName "1.0"
 
@@ -26,14 +26,12 @@ android {
     sourceCompatibility JavaVersion.VERSION_1_8
     targetCompatibility JavaVersion.VERSION_1_8
   }
-  kotlinOptions {
-    jvmTarget = '1.8'
-  }
 }
 
 dependencies {
 
-  implementation 'androidx.core:core-ktx:1.7.0'
+  implementation 'androidx.core:core:1.12.0'
+  implementation(platform("org.jetbrains.kotlin:kotlin-bom:1.8.0"))
   implementation 'androidx.appcompat:appcompat:1.6.1'
   implementation 'com.google.android.material:material:1.8.0'
   implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
@@ -42,7 +40,7 @@ dependencies {
   androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
 
   //Bluedot Point SDK
-  implementation 'com.gitlab.bluedotio.android:point_sdk_android:15.6.1'
+  implementation 'com.gitlab.bluedotio.android:point_sdk_android:16.0.0'
 
   def airshipVersion = "17.5.0"
 
