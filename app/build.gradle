@@ -10,6 +10,9 @@ if (localPropertiesFile.exists()) {
     localPropertiesFile.withInputStream { localProperties.load(it) }
 }
 
+def airshipVersion = "20.6.1"
+def pointSdkVersion = "17.4.1"
+
 android {
     namespace "io.bluedot.airshipdemo"
     compileSdk 36
@@ -42,6 +45,19 @@ android {
         compose true
         buildConfig true
     }
+
+}
+
+androidComponents {
+    onVariants(selector().all()) { variant ->
+        def branch = (System.env.BITRISE_GIT_BRANCH ?: "local").replaceAll('[^a-zA-Z0-9._-]', '-')
+        def commit = (System.env.GIT_CLONE_COMMIT_HASH ?: "dev")
+        if (commit.length() > 8) commit = commit.substring(0, 8)
+        def apkName = "artifact-${branch}-${commit}-airship${airshipVersion}-point${pointSdkVersion}-${variant.buildType}.apk"
+        variant.outputs.forEach { output ->
+            output.outputFileName.set(apkName)
+        }
+    }
 }
 
 dependencies {
@@ -69,9 +85,7 @@ dependencies {
     implementation 'com.google.accompanist:accompanist-permissions:0.37.3'
 
     //Bluedot Point SDK
-    implementation 'com.gitlab.bluedotio.android:point_sdk_android:17.4.1'
-
-    def airshipVersion = "20.6.1"
+    implementation "com.gitlab.bluedotio.android:point_sdk_android:$pointSdkVersion"
 
     // ADM & FCM push providers
     implementation "com.urbanairship.android:urbanairship-fcm:$airshipVersion"
