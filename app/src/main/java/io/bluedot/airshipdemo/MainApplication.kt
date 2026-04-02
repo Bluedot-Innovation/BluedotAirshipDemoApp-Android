@@ -1,173 +1,126 @@
 package io.bluedot.airshipdemo
 
-import android.Manifest.permission
 import android.app.Application
-import android.app.Notification
-import android.app.Notification.BigTextStyle
-import android.app.Notification.Builder
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.graphics.Color
-import android.os.Build.VERSION
-import android.os.Build.VERSION_CODES
+import android.util.Log
 import android.widget.Toast
-import androidx.core.app.ActivityCompat
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
 import au.com.bluedot.point.net.engine.GeoTriggeringService
+import au.com.bluedot.point.net.engine.GeoTriggeringStatusListener
 import au.com.bluedot.point.net.engine.InitializationResultListener
 import au.com.bluedot.point.net.engine.ServiceManager
-import com.urbanairship.UAirship
-import com.urbanairship.UAirship.OnReadyCallback
-import com.urbanairship.push.notifications.NotificationChannelCompat
-import io.bluedot.airshipdemo.R.mipmap
-import io.bluedot.airshipdemo.R.string
+import com.urbanairship.Airship
+import io.bluedot.airshipdemo.airship.AirshipAutopilot
+import io.bluedot.airshipdemo.utilities.RezolvePreferences
+import io.bluedot.airshipdemo.utilities.createNotification
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
-class MainApplication : Application(), OnReadyCallback {
-  private lateinit var serviceManager: ServiceManager
-  private val PROJECT_ID = "<PROJECT-ID>" //ProjectID for the Bluedot Canvas portal
-  private var channelCompat: NotificationChannelCompat? = null
-  override fun onCreate() {
-    super.onCreate()
+class MainApplication : Application() {
+    private lateinit var serviceManager: ServiceManager
 
-    //take off UrbanAirship SDK
-    initUrbanAirshipSdk()
+    private val preferences by lazy { RezolvePreferences(this) }
 
-    //start Point SDK
-    initPointSDK()
-  }
+    private val _isAirshipInitialized = MutableStateFlow(false)
+    val isAirshipInitialized: StateFlow<Boolean> = _isAirshipInitialized.asStateFlow()
 
-  fun initPointSDK() {
-    val locationPermissionGranted = ActivityCompat.checkSelfPermission(
-      applicationContext, permission.ACCESS_FINE_LOCATION
-    ) == PackageManager.PERMISSION_GRANTED
-    if (locationPermissionGranted) {
-      serviceManager = ServiceManager.getInstance(this)
-      if (!serviceManager.isBluedotServiceInitialized) {
+    private val _isPointSdkInitialized = MutableStateFlow(false)
+    val isPointSdkInitialized: StateFlow<Boolean> = _isPointSdkInitialized.asStateFlow()
+
+    override fun onCreate() {
+        super.onCreate()
+        _isPointSdkInitialized.value = ServiceManager.getInstance(this).isBluedotServiceInitialized
+    }
+
+    fun getSavedProjectId(): String = preferences.projectId
+    fun getSavedAirshipAppKey(): String = preferences.airshipAppKey
+    fun getSavedAirshipAppSecret(): String = preferences.airshipAppSecret
+
+    fun initAirship(airshipAppKey: String, airshipAppSecret: String) {
+        preferences.airshipAppKey = airshipAppKey
+        preferences.airshipAppSecret = airshipAppSecret
+
+        if (!Airship.isFlyingOrTakingOff) {
+            Airship.takeOff(
+                application = this,
+                options = AirshipAutopilot.makeAirshipConfigOptions(applicationContext)
+            ) {
+                Log.d(TAG, "Airship takeoff!")
+                AirshipAutopilot.airshipReady()
+                _isAirshipInitialized.value = true
+            }
+        } else {
+            Log.d(TAG, "Airship already flying!")
+            _isAirshipInitialized.value = true
+        }
+    }
+
+    fun safeInitPointSDK(projectId: String) {
+        preferences.projectId = projectId
+
+        serviceManager = ServiceManager.getInstance(this)
+
+        if (serviceManager.isBluedotServiceInitialized) {
+            serviceManager.reset { bdError ->
+                if (bdError != null) {
+                    Log.d(TAG, "Reset failed: ${bdError.reason}")
+                    Toast.makeText(applicationContext, "Reset failed: ${bdError.reason}", Toast.LENGTH_LONG).show()
+                } else {
+                    _isPointSdkInitialized.value = false
+                    Toast.makeText(applicationContext, "Bluedot SDK reset successfully", Toast.LENGTH_LONG).show()
+                    initPointSDK(projectId)
+                }
+            }
+        } else {
+            initPointSDK(projectId)
+        }
+    }
+
+    private fun initPointSDK(projectId: String) {
         val resultListener = InitializationResultListener { bdError ->
-          var text = "Initialization Result "
-          if (bdError != null) text += bdError.reason else {
-            text += "Success "
-            startGeoTrigger()
-          }
-          Toast.makeText(applicationContext, text, Toast.LENGTH_LONG).show()
+            var text = "Initialization Result "
+            if (bdError != null) text += bdError.reason else {
+                text += "Success "
+                _isPointSdkInitialized.value = true
+                startGeoTrigger()
+            }
+            Log.d(TAG, "PointSDK Initialization Result: $text")
+            Toast.makeText(applicationContext, text, Toast.LENGTH_LONG).show()
         }
-        serviceManager.initialize(PROJECT_ID, resultListener)
-      }
-    } else {
-      requestPermissions()
+        serviceManager.initialize(projectId, "https://globalconfig.dev-bluedot.com/", resultListener)
     }
-  }
 
-  private fun initUrbanAirshipSdk() {
-    UAirship.takeOff(this, this)
-  }
-
-  override fun onAirshipReady(uAirship: UAirship) {
-    println("-- onAirshipReady")
-    uAirship.pushManager.userNotificationsEnabled = true
-
-    //setting up notification channel
-    if (channelCompat != null) {
-      if (VERSION.SDK_INT >= VERSION_CODES.O) {
-        uAirship.pushManager
-          .notificationChannelRegistry
-          .createNotificationChannel(channelCompat!!)
-      }
+    fun stopGeoTrigger() {
+        GeoTriggeringService.stop(applicationContext, geoTriggeringStatusListener)
     }
-  }
 
-  fun reset() {
-    serviceManager.reset { bdError ->
-      var text = "Reset Finished "
-      if (bdError != null) text += bdError.reason else {
-        text += "Success "
-        val intent = Intent(applicationContext, MainActivity::class.java)
-        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-        startActivity(intent)
-      }
-      Toast.makeText(applicationContext, text, Toast.LENGTH_LONG).show()
-    }
-  }
-
-  private fun startGeoTrigger() {
-    val notification = createNotification()
-    GeoTriggeringService.builder()
-      .notification(notification)
-      .start(this) { geoTriggerError ->
-        if (geoTriggerError != null) {
-          Toast.makeText(
-            applicationContext,
-            "Error in starting GeoTrigger" + geoTriggerError.reason,
-            Toast.LENGTH_LONG
-          ).show()
-          return@start
+    val geoTriggeringStatusListener = GeoTriggeringStatusListener { error ->
+        Log.d(TAG, "onGeoTriggeringResult: $error")
+        if (error != null) {
+            Toast.makeText(applicationContext, "Error in stopping GeoTrigger ${error.reason}", Toast.LENGTH_LONG).show()
+        } else {
+            _isPointSdkInitialized.value = false
         }
-        Toast.makeText(
-          applicationContext,
-          "GeoTrigger started successfully",
-          Toast.LENGTH_LONG
-        ).show()
-      }
-  }
+    }
 
-  /**
-   * Creates notification channel and notification, required for foreground service notification.
-   *
-   * @return notification
-   */
-  private fun createNotification(): Notification {
-    val channelId: String
-    val channelName: String
-    return if (VERSION.SDK_INT >= VERSION_CODES.O) {
-      channelId = "Bluedot" + getString(string.app_name)
-      channelName = "Bluedot Service" + getString(string.app_name)
-      channelCompat = NotificationChannelCompat(
-        channelId,
-        channelName,
-        NotificationManagerCompat.IMPORTANCE_DEFAULT
-      )
-      val notificationChannel = NotificationChannel(
-        channelId, channelName,
-        NotificationManager.IMPORTANCE_DEFAULT
-      )
-      notificationChannel.enableLights(false)
-      notificationChannel.lightColor = Color.RED
-      notificationChannel.enableVibration(false)
-      val notificationManager = this.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-      notificationManager.createNotificationChannel(notificationChannel)
-      val notification = Builder(
-        applicationContext, channelId
-      )
-        .setContentTitle(getString(string.foreground_notification_title))
-        .setContentText(getString(string.foreground_notification_text))
-        .setStyle(BigTextStyle().bigText(getString(string.foreground_notification_text)))
-        .setOngoing(true)
-        .setCategory(Notification.CATEGORY_SERVICE)
-        .setSmallIcon(mipmap.ic_launcher)
-      notification.build()
-    } else {
-      val notification = NotificationCompat.Builder(
-        applicationContext
-      )
-        .setContentTitle(getString(string.foreground_notification_title))
-        .setContentText(getString(string.foreground_notification_text))
-        .setStyle(
-          NotificationCompat.BigTextStyle().bigText(getString(string.foreground_notification_text))
+    private fun startGeoTrigger() {
+        val notification = createNotification(
+            title = applicationContext.getString(R.string.foreground_notification_title),
+            content = applicationContext.getString(R.string.foreground_notification_text),
+            onGoing = true,
+            context = applicationContext
         )
-        .setOngoing(true)
-        .setCategory(Notification.CATEGORY_SERVICE)
-        .setPriority(NotificationManager.IMPORTANCE_HIGH)
-        .setSmallIcon(mipmap.ic_launcher)
-      notification.build()
+        GeoTriggeringService.builder()
+            .notification(notification)
+            .start(this) { geoTriggerError ->
+                if (geoTriggerError != null) {
+                    Toast.makeText(applicationContext, "Error in starting GeoTrigger ${geoTriggerError.reason}", Toast.LENGTH_LONG).show()
+                    return@start
+                }
+                Toast.makeText(applicationContext, "GeoTrigger started successfully", Toast.LENGTH_LONG).show()
+            }
     }
-  }
 
-  private fun requestPermissions() {
-    val intent = Intent(applicationContext, RequestPermissionActivity::class.java)
-    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-    startActivity(intent)
-  }
+    companion object {
+        private const val TAG = "MainApplication"
+    }
 }
