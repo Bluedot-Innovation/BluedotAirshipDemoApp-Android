@@ -53,7 +53,8 @@ androidComponents {
         def branch = (System.env.BITRISE_GIT_BRANCH ?: "local").replaceAll('[^a-zA-Z0-9._-]', '-')
         def commit = (System.env.GIT_CLONE_COMMIT_HASH ?: "dev")
         if (commit.length() > 8) commit = commit.substring(0, 8)
-        def apkName = "artifact-${branch}-${commit}-airship${airshipVersion}-point${pointSdkVersion}-${variant.buildType}.apk"
+        def buildNumber = System.env.BITRISE_BUILD_NUMBER ?: "0"
+        def apkName = "artifact-${branch}-${commit}-airship${airshipVersion}-point${pointSdkVersion}-${variant.buildType}-${buildNumber}.apk"
         variant.outputs.forEach { output ->
             output.outputFileName.set(apkName)
         }
