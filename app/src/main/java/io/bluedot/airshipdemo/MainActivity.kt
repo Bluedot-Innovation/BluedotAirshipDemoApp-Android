@@ -58,11 +58,11 @@ class MainActivity : ComponentActivity() {
                         channelId = channel,
                         isAirshipInitialized = isAirshipInitialized,
                         isPointSdkInitialized = isPointSdkInitialized,
-                        onInitAirship = { airshipAppKey, airshipAppSecret ->
-                            mainApplication.initAirship(airshipAppKey, airshipAppSecret)
+                        onInitAirship = { airshipAppKey, airshipAppSecret, airshipSite ->
+                            mainApplication.initAirship(airshipAppKey, airshipAppSecret, airshipSite)
                         },
-                        onInitPointSdk = { projectId ->
-                            mainApplication.safeInitPointSDK(projectId)
+                        onInitPointSdk = { projectId, baseUrl ->
+                            mainApplication.safeInitPointSDK(projectId, baseUrl)
                         },
                         onReset = { mainApplication.stopGeoTrigger() }
                     )

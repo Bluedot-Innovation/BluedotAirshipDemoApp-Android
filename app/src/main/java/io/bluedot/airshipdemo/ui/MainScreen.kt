@@ -13,37 +13,26 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.toClipEntry
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
-import io.bluedot.airshipdemo.BuildConfig
-import io.bluedot.airshipdemo.MainApplication
-import io.bluedot.airshipdemo.R
 import io.bluedot.airshipdemo.utilities.localPermissions
 import kotlinx.coroutines.launch
-import kotlin.text.ifEmpty
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -51,24 +40,11 @@ fun MainScreen(
     channelId: String?,
     isAirshipInitialized: Boolean,
     isPointSdkInitialized: Boolean,
-    onInitAirship: (String, String) -> Unit,
-    onInitPointSdk: (String) -> Unit,
+    onInitAirship: (String, String, String) -> Unit,
+    onInitPointSdk: (String, String) -> Unit,
     onReset: () -> Unit,
 ) {
     val context = LocalContext.current
-    val app = remember { context.applicationContext as MainApplication }
-    val savedProjectId = remember { app.getSavedProjectId() }
-    val savedAirshipAppKey = remember { app.getSavedAirshipAppKey() }
-    val savedAirshipAppSecret = remember { app.getSavedAirshipAppSecret() }
-    var projectId by remember {
-        mutableStateOf(savedProjectId.ifEmpty { BuildConfig.BLUEDOT_PROJECT_ID })
-    }
-    var airshipAppKey by remember {
-        mutableStateOf(savedAirshipAppKey.ifEmpty { BuildConfig.AIRSHIP_APP_KEY })
-    }
-    var airshipAppSecret by remember {
-        mutableStateOf(savedAirshipAppSecret.ifEmpty { BuildConfig.AIRSHIP_APP_SECRET })
-    }
 
     val permissionsState = rememberMultiplePermissionsState(permissions = localPermissions)
 
@@ -81,7 +57,7 @@ fun MainScreen(
             .fillMaxSize()
             .statusBarsPadding()
             .padding(horizontal = 16.dp)
-            .padding(top = 160.dp),
+            .padding(top = 120.dp),
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -124,77 +100,17 @@ fun MainScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        OutlinedTextField(
-            value = airshipAppKey,
-            onValueChange = { airshipAppKey = it },
-            label = { Text("Airship App Key") },
-            placeholder = { Text("Enter Airship App Key") },
-            singleLine = true,
-            enabled = !isAirshipInitialized,
-            modifier = Modifier.fillMaxWidth()
+        AirshipInitSection(
+            isAirshipInitialized = isAirshipInitialized,
+            onInitAirship = onInitAirship,
         )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OutlinedTextField(
-            value = airshipAppSecret,
-            onValueChange = { airshipAppSecret = it },
-            label = { Text("Airship App Secret") },
-            placeholder = { Text("Enter Airship App Secret") },
-            singleLine = true,
-            enabled = !isAirshipInitialized,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(
-            onClick = { onInitAirship(airshipAppKey, airshipAppSecret) },
-            enabled = !isAirshipInitialized && airshipAppKey.isNotBlank() && airshipAppSecret.isNotBlank(),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp)
-        ) {
-            Text(text = stringResource(id = R.string.initialize_airship))
-        }
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        OutlinedTextField(
-            value = projectId,
-            onValueChange = { projectId = it },
-            label = { Text("Project ID") },
-            placeholder = { Text("Enter Bluedot Project ID") },
-            singleLine = true,
-            enabled = !isPointSdkInitialized,
-            modifier = Modifier.fillMaxWidth()
+        PointSdkInitSection(
+            isPointSdkInitialized = isPointSdkInitialized,
+            onInitPointSdk = onInitPointSdk,
+            onReset = onReset,
         )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Button(
-                onClick = { onInitPointSdk(projectId) },
-                enabled = !isPointSdkInitialized && projectId.isNotBlank(),
-                modifier = Modifier
-                    .weight(1f)
-                    .height(48.dp)
-            ) {
-                Text(text = stringResource(id = R.string.start_point_sdk))
-            }
-
-            Button(
-                onClick = { onReset() },
-                enabled = isPointSdkInitialized,
-                modifier = Modifier
-                    .weight(1f)
-                    .height(48.dp)
-            ) {
-                Text(text = stringResource(id = R.string.stop_point_sdk))
-            }
-        }
     }
 }

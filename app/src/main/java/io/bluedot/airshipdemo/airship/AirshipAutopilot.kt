@@ -25,11 +25,12 @@ class AirshipAutopilot : Autopilot() {
             val preferences = RezolvePreferences(context)
             val appKey = preferences.airshipAppKey.ifEmpty { BuildConfig.AIRSHIP_APP_KEY }
             val appSecret = preferences.airshipAppSecret.ifEmpty { BuildConfig.AIRSHIP_APP_SECRET }
+            val site = if (preferences.airshipSite == AirshipConfigOptions.Site.SITE_US.name) AirshipConfigOptions.Site.SITE_US else AirshipConfigOptions.Site.SITE_EU
 
             return airshipConfigOptions {
                 setAppKey(appKey)
                 setAppSecret(appSecret)
-                setSite(AirshipConfigOptions.Site.SITE_EU)
+                setSite(site)
                 setInProduction(!BuildConfig.DEBUG)
 
                 setNotificationAccentColor(context.getColor(R.color.colorAccent))
