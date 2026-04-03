@@ -10,7 +10,7 @@ if (localPropertiesFile.exists()) {
     localPropertiesFile.withInputStream { localProperties.load(it) }
 }
 
-def airshipVersion = "17.2.0"
+def airshipVersion = "17.1.0"
 //def pointSdkVersion = "com.gitlab.bluedotio.android:point_sdk_android:17.4.1"
 def pointSdkVersion = "au.com.bluedot:pointsdk:1380180793"
 
