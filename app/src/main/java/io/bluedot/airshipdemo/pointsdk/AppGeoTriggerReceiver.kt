@@ -5,7 +5,7 @@ import android.widget.Toast
 import au.com.bluedot.point.net.engine.GeoTriggeringEventReceiver
 import au.com.bluedot.point.net.engine.event.GeoTriggerEvent
 import au.com.bluedot.point.net.engine.event.NotificationZoneInfo
-import com.urbanairship.Airship
+import com.urbanairship.UAirship
 import com.urbanairship.analytics.CustomEvent
 import io.bluedot.airshipdemo.utilities.createNotification
 import io.bluedot.airshipdemo.utilities.fireNotification
@@ -106,7 +106,7 @@ class AppGeoTriggerReceiver : GeoTriggeringEventReceiver() {
         val event = builder.build()
         println("-- event data : " + event.toJsonValue())
 
-        if (Airship.isFlying) {
+        if (UAirship.isFlying()) {
             event.track()
         }
 

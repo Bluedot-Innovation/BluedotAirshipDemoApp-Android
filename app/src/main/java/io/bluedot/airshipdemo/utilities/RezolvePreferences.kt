@@ -21,7 +21,7 @@ class RezolvePreferences(context: Context) {
         set(value) = prefs.edit { putString(KEY_AIRSHIP_APP_SECRET, value) }
 
     var airshipSite: String
-        get() = prefs.getString(KEY_AIRSHIP_SITE, AirshipConfigOptions.Site.SITE_EU.name) ?: AirshipConfigOptions.Site.SITE_EU.name
+        get() = prefs.getString(KEY_AIRSHIP_SITE, AirshipConfigOptions.SITE_EU) ?: AirshipConfigOptions.SITE_EU
         set(value) = prefs.edit { putString(KEY_AIRSHIP_SITE, value) }
 
     var baseUrl: String

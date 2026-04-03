@@ -7,7 +7,7 @@ import au.com.bluedot.point.net.engine.GeoTriggeringService
 import au.com.bluedot.point.net.engine.GeoTriggeringStatusListener
 import au.com.bluedot.point.net.engine.InitializationResultListener
 import au.com.bluedot.point.net.engine.ServiceManager
-import com.urbanairship.Airship
+import com.urbanairship.UAirship
 import io.bluedot.airshipdemo.airship.AirshipAutopilot
 import io.bluedot.airshipdemo.utilities.RezolvePreferences
 import io.bluedot.airshipdemo.utilities.createNotification
@@ -42,18 +42,18 @@ class MainApplication : Application() {
         preferences.airshipAppSecret = airshipAppSecret
         preferences.airshipSite = airshipSite
 
-        if (!Airship.isFlyingOrTakingOff) {
-            Airship.takeOff(
-                application = this,
-                options = AirshipAutopilot.makeAirshipConfigOptions(applicationContext)
+        if (UAirship.isTakingOff() || UAirship.isFlying()) {
+            Log.d(TAG, "Airship already flying!")
+            _isAirshipInitialized.value = true
+        } else {
+            UAirship.takeOff(
+                this,
+                AirshipAutopilot.makeAirshipConfigOptions(applicationContext)
             ) {
                 Log.d(TAG, "Airship takeoff!")
                 AirshipAutopilot.airshipReady()
                 _isAirshipInitialized.value = true
             }
-        } else {
-            Log.d(TAG, "Airship already flying!")
-            _isAirshipInitialized.value = true
         }
     }
 

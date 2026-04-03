@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
@@ -31,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import io.bluedot.airshipdemo.BuildConfig
 import io.bluedot.airshipdemo.utilities.localPermissions
 import kotlinx.coroutines.launch
 
@@ -56,6 +58,7 @@ fun MainScreen(
         modifier = Modifier
             .fillMaxSize()
             .statusBarsPadding()
+            .navigationBarsPadding()
             .padding(horizontal = 16.dp)
             .padding(top = 120.dp),
         verticalArrangement = Arrangement.Top,
@@ -111,6 +114,18 @@ fun MainScreen(
             isPointSdkInitialized = isPointSdkInitialized,
             onInitPointSdk = onInitPointSdk,
             onReset = onReset,
+        )
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        Text(
+            text = "PointSDK v${BuildConfig.POINT_SDK_VERSION}  •  Airship v${BuildConfig.AIRSHIP_SDK_VERSION}",
+            fontSize = 11.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp)
         )
     }
 }

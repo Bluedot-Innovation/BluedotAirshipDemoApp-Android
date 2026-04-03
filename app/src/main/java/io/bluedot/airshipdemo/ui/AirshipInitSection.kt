@@ -103,13 +103,13 @@ fun AirshipInitSection(
                 onDismissRequest = { siteDropdownExpanded = false }
             ) {
                 listOf(
-                    AirshipConfigOptions.Site.SITE_EU,
-                    AirshipConfigOptions.Site.SITE_US
+                    AirshipConfigOptions.SITE_EU,
+                    AirshipConfigOptions.SITE_US
                 ).forEach { site ->
                     DropdownMenuItem(
-                        text = { Text(site.name) },
+                        text = { Text(site) },
                         onClick = {
-                            airshipSite = site.name
+                            airshipSite = site
                             siteDropdownExpanded = false
                         }
                     )

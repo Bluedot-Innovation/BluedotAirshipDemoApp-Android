@@ -1,6 +1,7 @@
 package io.bluedot.airshipdemo
 
 import android.os.Bundle
+import android.os.Looper
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -10,26 +11,24 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import com.urbanairship.Airship
-import com.urbanairship.AirshipStatus
 import com.urbanairship.channel.AirshipChannelListener
 import io.bluedot.airshipdemo.ui.MainScreen
 import io.bluedot.airshipdemo.ui.theme.AppTheme
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import androidx.lifecycle.lifecycleScope
+import com.urbanairship.UAirship
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
-    private val _channelId = MutableStateFlow(if (Airship.isFlying) Airship.channel.id else "")
+    private val _channelId = MutableStateFlow(if (UAirship.isFlying()) UAirship.shared().channel.id else "")
     val channelId: StateFlow<String?> = _channelId.asStateFlow()
 
     private val channelListener = AirshipChannelListener {
-        Log.d(TAG, "App.ChannelListener: ${Airship.channel.id}")
-        _channelId.value = Airship.channel.id
+        Log.d(TAG, "App.ChannelListener: ${UAirship.shared().channel.id}")
+        _channelId.value = UAirship.shared().channel.id
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -37,16 +36,34 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         lifecycleScope.launch {
             // wait for Airship to be flying before checking channel status
-            Airship.statusFlow.first { it == AirshipStatus.IS_FLYING }
-
-            if (Airship.channel.id != null) {
-                Log.d(TAG, "Airship channel already exists: ${Airship.channel.id}")
-                _channelId.value = Airship.channel.id
-            } else {
-                Log.d(TAG, "Airship is flying but no channel yet, adding channel listener")
-                Airship.channel.addChannelListener(channelListener)
+            UAirship.shared { airship ->
+                if (airship.channel.id != null) {
+                    Log.d(TAG, "Airship channel already exists: ${airship.channel.id}")
+                    _channelId.value = airship.channel.id
+                } else {
+                    Log.d(TAG, "Airship is flying but no channel yet, adding channel listener")
+                    airship.channel.addChannelListener(channelListener)
+                }
             }
         }
+
+//        UAirship.shared(Looper.getMainLooper()) { airship ->
+//            if (airship.channel.id != null) {
+//                Log.d(TAG, "Airship channel already exists: ${airship.channel.id}")
+//                _channelId.value = airship.channel.id
+//            } else {
+//                Log.d(TAG, "Airship is flying but no channel yet, adding channel listener")
+//                airship.channel.addChannelListener(channelListener)
+//            }
+//        }
+
+//        if (UAirship.shared().channel.id != null) {
+//            Log.d(TAG, "Airship channel already exists: ${UAirship.shared().channel.id}")
+//            _channelId.value = UAirship.shared().channel.id
+//        } else {
+//            Log.d(TAG, "Airship is flying but no channel yet, adding channel listener")
+//            UAirship.shared().channel.addChannelListener(channelListener)
+//        }
         setContent {
             AppTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
@@ -73,8 +90,8 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        if (Airship.isFlying) {
-            Airship.channel.removeChannelListener(channelListener)
+        if (UAirship.isFlying()) {
+            UAirship.shared().channel.removeChannelListener(channelListener)
         }
     }
 
