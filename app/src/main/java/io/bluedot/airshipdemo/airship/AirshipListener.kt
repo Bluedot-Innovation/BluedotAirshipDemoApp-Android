@@ -62,6 +62,10 @@ class AirshipListener : PushListener, NotificationListener, PushTokenListener,
         Log.i(TAG, "Channel created $channelId")
     }
 
+    override fun onChannelUpdated(channelId: String) {
+        Log.i(TAG, "Channel updated $channelId")
+    }
+
     override fun onPushTokenUpdated(token: String) {
         Log.i(TAG, "Push token updated $token")
     }

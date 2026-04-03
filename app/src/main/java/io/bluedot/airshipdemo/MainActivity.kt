@@ -26,9 +26,17 @@ class MainActivity : ComponentActivity() {
     private val _channelId = MutableStateFlow(if (UAirship.isFlying()) UAirship.shared().channel.id else "")
     val channelId: StateFlow<String?> = _channelId.asStateFlow()
 
-    private val channelListener = AirshipChannelListener {
-        Log.d(TAG, "App.ChannelListener: ${UAirship.shared().channel.id}")
-        _channelId.value = UAirship.shared().channel.id
+    private val channelListener = object : AirshipChannelListener {
+        override fun onChannelCreated(channelId: String) {
+            Log.d(TAG, "App.ChannelListener.created: ${UAirship.shared().channel.id}")
+            _channelId.value = UAirship.shared().channel.id
+        }
+
+        override fun onChannelUpdated(channelId: String) {
+            Log.d(TAG, "App.ChannelListener.updated: ${UAirship.shared().channel.id}")
+            _channelId.value = UAirship.shared().channel.id
+        }
+
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
