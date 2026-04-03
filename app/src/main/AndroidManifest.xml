@@ -40,6 +40,15 @@
             </intent-filter>
         </receiver>
 
+        <receiver
+            android:name=".pointsdk.MyPushNotificationsEventReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="io.bluedot.point.PUSHNOTIFICATIONS" />
+            </intent-filter>
+        </receiver>
+
         <service
             android:name=".firebase.RezolveFirebaseMessagingService"
             android:exported="false">
