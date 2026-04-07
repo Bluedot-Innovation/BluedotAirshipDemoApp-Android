@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import io.bluedot.airshipdemo.BuildConfig
 import io.bluedot.airshipdemo.utilities.localPermissions
 import kotlinx.coroutines.launch
 
@@ -111,6 +112,18 @@ fun MainScreen(
             isPointSdkInitialized = isPointSdkInitialized,
             onInitPointSdk = onInitPointSdk,
             onReset = onReset,
+        )
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        Text(
+            text = "PointSDK v${BuildConfig.POINT_SDK_VERSION}  •  Airship v${BuildConfig.AIRSHIP_SDK_VERSION}",
+            fontSize = 11.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp)
         )
     }
 }

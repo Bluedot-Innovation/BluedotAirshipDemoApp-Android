@@ -30,6 +30,8 @@ android {
         buildConfigField "String", "BLUEDOT_PROJECT_ID", "\"${localProperties['bluedot.projectId'] ?: ''}\""
         buildConfigField "String", "AIRSHIP_APP_KEY", "\"${localProperties['airship.appKey'] ?: ''}\""
         buildConfigField "String", "AIRSHIP_APP_SECRET", "\"${localProperties['airship.appSecret'] ?: ''}\""
+        buildConfigField "String", "AIRSHIP_SDK_VERSION", "\"${airshipVersion}\""
+        buildConfigField "String", "POINT_SDK_VERSION", "\"${pointSdkVersion.tokenize(':').last()}\""
     }
 
     buildTypes {
