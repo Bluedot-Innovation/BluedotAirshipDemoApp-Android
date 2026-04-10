@@ -42,7 +42,7 @@ fun MainScreen(
     isAirshipInitialized: Boolean,
     isPointSdkInitialized: Boolean,
     onInitAirship: (String, String, String) -> Unit,
-    onInitPointSdk: (String, String) -> Unit,
+    onInitPointSdk: (String) -> Unit,
     onReset: () -> Unit,
 ) {
     val context = LocalContext.current

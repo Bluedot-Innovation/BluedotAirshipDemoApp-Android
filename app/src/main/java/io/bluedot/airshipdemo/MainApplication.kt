@@ -35,7 +35,6 @@ class MainApplication : Application() {
     fun getSavedAirshipAppKey(): String = preferences.airshipAppKey
     fun getSavedAirshipAppSecret(): String = preferences.airshipAppSecret
     fun getSavedAirshipSite(): String = preferences.airshipSite
-    fun getSavedBaseUrl(): String = preferences.baseUrl
 
     fun initAirship(airshipAppKey: String, airshipAppSecret: String, airshipSite: String) {
         preferences.airshipAppKey = airshipAppKey
@@ -57,9 +56,8 @@ class MainApplication : Application() {
         }
     }
 
-    fun safeInitPointSDK(projectId: String, baseUrl: String) {
+    fun safeInitPointSDK(projectId: String) {
         preferences.projectId = projectId
-        preferences.baseUrl = baseUrl
 
         serviceManager = ServiceManager.getInstance(this)
 
@@ -71,15 +69,15 @@ class MainApplication : Application() {
                 } else {
                     _isPointSdkInitialized.value = false
                     Toast.makeText(applicationContext, "Bluedot SDK reset successfully", Toast.LENGTH_LONG).show()
-                    initPointSDK(projectId, baseUrl)
+                    initPointSDK(projectId)
                 }
             }
         } else {
-            initPointSDK(projectId, baseUrl)
+            initPointSDK(projectId)
         }
     }
 
-    private fun initPointSDK(projectId: String, baseUrl: String) {
+    private fun initPointSDK(projectId: String) {
         val resultListener = InitializationResultListener { bdError ->
             var text = "Initialization Result "
             if (bdError != null) text += bdError.reason else {
@@ -90,7 +88,7 @@ class MainApplication : Application() {
             Log.d(TAG, "PointSDK Initialization Result: $text")
             Toast.makeText(applicationContext, text, Toast.LENGTH_LONG).show()
         }
-        serviceManager.initialize(projectId, baseUrl, resultListener)
+        serviceManager.initialize(projectId, resultListener)
     }
 
     fun stopGeoTrigger() {

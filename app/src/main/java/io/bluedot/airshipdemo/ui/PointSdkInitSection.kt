@@ -34,16 +34,13 @@ import kotlin.text.ifEmpty
 @Composable
 fun PointSdkInitSection(
     isPointSdkInitialized: Boolean,
-    onInitPointSdk: (String, String) -> Unit,
+    onInitPointSdk: (String) -> Unit,
     onReset: () -> Unit,
 ) {
     val context = LocalContext.current
     val app = remember { context.applicationContext as MainApplication }
     var projectId by remember {
         mutableStateOf(app.getSavedProjectId().ifEmpty { BuildConfig.BLUEDOT_PROJECT_ID })
-    }
-    var baseUrl by remember {
-        mutableStateOf(app.getSavedBaseUrl().ifEmpty { RezolvePreferences.DEFAULT_BASE_URL })
     }
     var baseUrlDropdownExpanded by remember { mutableStateOf(false) }
 
@@ -59,71 +56,12 @@ fun PointSdkInitSection(
 
     Spacer(modifier = Modifier.height(16.dp))
 
-    // Base URL dropdown
-    val baseUrlOptions = listOf(
-        RezolvePreferences.DEFAULT_BASE_URL,
-        RezolvePreferences.ALTERNATIVE_BASE_URL
-    )
-
-    fun urlLabel(url: String): String {
-        // Show only the hostname (without https:// and trailing slash) to keep the label compact.
-        // Also strip the common "globalconfig." prefix so the distinctive part is shown first.
-        val host = url.removePrefix("https://").trimEnd('/')
-        return host//.removePrefix("globalconfig.")
-    }
-
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Text(
-            text = "Base URL",
-            modifier = Modifier.weight(1f)
-        )
-        Box(modifier = Modifier.weight(3f)) {
-            OutlinedTextField(
-                value = urlLabel(baseUrl),
-                onValueChange = {},
-                singleLine = true,
-                readOnly = true,
-                enabled = !isPointSdkInitialized,
-                modifier = Modifier.fillMaxWidth(),
-                trailingIcon = {
-                    IconButton(
-                        onClick = { if (!isPointSdkInitialized) baseUrlDropdownExpanded = true }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowDropDown,
-                            contentDescription = "Select base URL"
-                        )
-                    }
-                }
-            )
-            DropdownMenu(
-                expanded = baseUrlDropdownExpanded,
-                onDismissRequest = { baseUrlDropdownExpanded = false }
-            ) {
-                baseUrlOptions.forEach { url ->
-                    DropdownMenuItem(
-                        text = { Text(urlLabel(url)) },
-                        onClick = {
-                            baseUrl = url
-                            baseUrlDropdownExpanded = false
-                        }
-                    )
-                }
-            }
-        }
-    }
-
-    Spacer(modifier = Modifier.height(16.dp))
-
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Button(
-            onClick = { onInitPointSdk(projectId, baseUrl) },
+            onClick = { onInitPointSdk(projectId) },
             enabled = !isPointSdkInitialized && projectId.isNotBlank(),
             modifier = Modifier
                 .weight(1f)
