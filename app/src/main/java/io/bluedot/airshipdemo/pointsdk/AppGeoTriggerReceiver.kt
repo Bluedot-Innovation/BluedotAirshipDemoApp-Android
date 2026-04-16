@@ -5,7 +5,7 @@ import android.widget.Toast
 import au.com.bluedot.point.net.engine.GeoTriggeringEventReceiver
 import au.com.bluedot.point.net.engine.event.GeoTriggerEvent
 import au.com.bluedot.point.net.engine.event.NotificationZoneInfo
-import com.urbanairship.Airship
+import com.urbanairship.UAirship
 import com.urbanairship.analytics.CustomEvent
 import io.bluedot.airshipdemo.utilities.createNotification
 import io.bluedot.airshipdemo.utilities.fireNotification
@@ -50,18 +50,18 @@ class AppGeoTriggerReceiver : GeoTriggeringEventReceiver() {
      * or a corresponding exit event occurs, the dwell event may occur again.
      * @param dwellEvent Provides details of the dwell event.
      */
-    override fun onZoneDwellEvent(dwellEvent: GeoTriggerEvent, context: Context) {
-        val dwellDetails = "Dwelled in zone ${dwellEvent.zoneInfo.name}"
-        Toast.makeText(context, dwellDetails, Toast.LENGTH_LONG).show()
-
-        sendCustomEvent(
-            dwellDetails,
-            dwellEvent.zoneInfo,
-            dwellEvent.dwellEvent()?.dwellThreshold ?: -1,
-            dwellEvent.zoneInfo.customData,
-            context
-        )
-    }
+//    override fun onZoneDwellEvent(dwellEvent: GeoTriggerEvent, context: Context) {
+//        val dwellDetails = "Dwelled in zone ${dwellEvent.zoneInfo.name}"
+//        Toast.makeText(context, dwellDetails, Toast.LENGTH_LONG).show()
+//
+//        sendCustomEvent(
+//            dwellDetails,
+//            dwellEvent.zoneInfo,
+//            dwellEvent.dwellEvent()?.dwellThreshold ?: -1,
+//            dwellEvent.zoneInfo.customData,
+//            context
+//        )
+//    }
 
     /**
      * This method is invoked when the SDK registers an exit event. An exit event can be triggered if
@@ -106,7 +106,7 @@ class AppGeoTriggerReceiver : GeoTriggeringEventReceiver() {
         val event = builder.build()
         println("-- event data : " + event.toJsonValue())
 
-        if (Airship.isFlying) {
+        if (UAirship.isFlying()) {
             event.track()
         }
 

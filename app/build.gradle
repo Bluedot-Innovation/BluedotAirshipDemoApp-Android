@@ -10,8 +10,8 @@ if (localPropertiesFile.exists()) {
     localPropertiesFile.withInputStream { localProperties.load(it) }
 }
 
-def airshipVersion = "20.6.1"
-def pointSdkVersion = "17.4.1"
+def airshipVersion = "19.13.6"
+def pointSdkVersion = "17.1.0"
 
 android {
     namespace "io.bluedot.airshipdemo"

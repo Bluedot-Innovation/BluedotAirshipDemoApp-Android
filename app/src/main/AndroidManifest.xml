@@ -50,7 +50,7 @@
 
         <meta-data
             android:name="com.urbanairship.autopilot"
-            android:value="io.bluedot.airshipdemo.AirshipAutopilot" />
+            android:value="io.bluedot.airshipdemo.airship.AirshipAutopilot" />
 
     </application>
 </manifest>

@@ -7,7 +7,8 @@ import au.com.bluedot.point.net.engine.GeoTriggeringService
 import au.com.bluedot.point.net.engine.GeoTriggeringStatusListener
 import au.com.bluedot.point.net.engine.InitializationResultListener
 import au.com.bluedot.point.net.engine.ServiceManager
-import com.urbanairship.Airship
+import com.urbanairship.UAirship
+import com.urbanairship.channel.AirshipChannelListener
 import io.bluedot.airshipdemo.airship.AirshipAutopilot
 import io.bluedot.airshipdemo.utilities.RezolvePreferences
 import io.bluedot.airshipdemo.utilities.createNotification
@@ -18,10 +19,18 @@ import kotlinx.coroutines.flow.asStateFlow
 class MainApplication : Application() {
     private lateinit var serviceManager: ServiceManager
 
+    private val channelListener = AirshipChannelListener { id ->
+        Log.d(TAG, "onChannelCreated: $id")
+        _channelId.value = id
+    }
+
     private val preferences by lazy { RezolvePreferences(this) }
 
     private val _isAirshipInitialized = MutableStateFlow(false)
     val isAirshipInitialized: StateFlow<Boolean> = _isAirshipInitialized.asStateFlow()
+
+    private val _channelId = MutableStateFlow<String?>(null)
+    val channelId: StateFlow<String?> = _channelId.asStateFlow()
 
     private val _isPointSdkInitialized = MutableStateFlow(false)
     val isPointSdkInitialized: StateFlow<Boolean> = _isPointSdkInitialized.asStateFlow()
@@ -29,6 +38,21 @@ class MainApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         _isPointSdkInitialized.value = ServiceManager.getInstance(this).isBluedotServiceInitialized
+        // Channel ID is populated via onAirshipStarted() called from AirshipAutopilot.onAirshipReady()
+    }
+
+    /**
+     * Called from AirshipAutopilot.onAirshipReady() — the earliest guaranteed Airship-ready hook.
+     * Reads existing channel ID immediately and registers a listener for first-time channel creation.
+     */
+    fun onAirshipStarted(uairship: UAirship) {
+        Log.d(TAG, "onAirshipStarted — channel: ${uairship.channel.id}")
+        _isAirshipInitialized.value = true
+        uairship.channel.id?.let {
+            Log.d(TAG, "Channel already exists: $it")
+            _channelId.value = it
+        }
+        uairship.channel.addChannelListener(channelListener)
     }
 
     fun getSavedProjectId(): String = preferences.projectId
@@ -42,16 +66,18 @@ class MainApplication : Application() {
         preferences.airshipAppSecret = airshipAppSecret
         preferences.airshipSite = airshipSite
 
-        if (!Airship.isFlyingOrTakingOff) {
-            Airship.takeOff(
-                application = this,
-                options = AirshipAutopilot.makeAirshipConfigOptions(applicationContext)
-            ) {
+        if (!UAirship.isFlying()) {
+            UAirship.takeOff(
+                this,
+                AirshipAutopilot.makeAirshipConfigOptions(applicationContext)
+            ) { airship ->
                 Log.d(TAG, "Airship takeoff!")
                 AirshipAutopilot.airshipReady()
-                _isAirshipInitialized.value = true
+                onAirshipStarted(airship)
             }
         } else {
+            // Already flying (Autopilot started it) — onAirshipStarted already called via Autopilot.
+            // Just log and update state.
             Log.d(TAG, "Airship already flying!")
             _isAirshipInitialized.value = true
         }
