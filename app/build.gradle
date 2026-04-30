@@ -11,8 +11,8 @@ if (localPropertiesFile.exists()) {
 }
 
 def airshipVersion = "20.6.1"
-//def pointSdkVersion = "com.gitlab.bluedotio.android:point_sdk_android:17.4.1"
-def pointSdkVersion = "au.com.bluedot:pointsdk:1380180793"
+def pointSdkVersion = "com.gitlab.bluedotio.android:point_sdk_android:18.0.0"
+def pointSdkPushVersion = "com.gitlab.bluedotio.android:point_sdk_push:18.0.0"
 
 android {
     namespace "io.bluedot.airshipdemo"
@@ -91,7 +91,7 @@ dependencies {
 
     //Bluedot Point SDK
     implementation pointSdkVersion
-    implementation "au.com.bluedot:pushnotifications:1380180793"
+    implementation pointSdkPushVersion
 
     // ADM & FCM push providers
     implementation "com.urbanairship.android:urbanairship-fcm:$airshipVersion"
