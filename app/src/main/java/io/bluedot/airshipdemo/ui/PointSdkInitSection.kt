@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import au.com.bluedot.point.net.engine.GeoTriggeringService
 import io.bluedot.airshipdemo.BuildConfig
 import io.bluedot.airshipdemo.MainApplication
 import io.bluedot.airshipdemo.R
