@@ -94,9 +94,18 @@ class MainApplication : Application() {
     }
 
     fun stopGeoTrigger() {
-        GeoTriggeringService.stop(applicationContext, geoTriggeringStatusListener)
+        GeoTriggeringService.stop(geoTriggeringStatusListener)
     }
 
+    fun startStopGeoTrigger() {
+        if (serviceManager.isBluedotServiceInitialized) {
+
+            if (GeoTriggeringService.isRunning())
+               stopGeoTrigger()
+            else
+               startGeoTrigger()
+        }
+    }
     val geoTriggeringStatusListener = GeoTriggeringStatusListener { error ->
         Log.d(TAG, "onGeoTriggeringResult: $error")
         if (error != null) {
@@ -115,7 +124,7 @@ class MainApplication : Application() {
         )
         GeoTriggeringService.builder()
             .notification(notification)
-            .start(this) { geoTriggerError ->
+            .start { geoTriggerError ->
                 if (geoTriggerError != null) {
                     Toast.makeText(applicationContext, "Error in starting GeoTrigger ${geoTriggerError.reason}", Toast.LENGTH_LONG).show()
                     return@start

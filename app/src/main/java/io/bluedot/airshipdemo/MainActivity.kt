@@ -64,7 +64,7 @@ class MainActivity : ComponentActivity() {
                         onInitPointSdk = { projectId, baseUrl ->
                             mainApplication.safeInitPointSDK(projectId, baseUrl)
                         },
-                        onReset = { mainApplication.stopGeoTrigger() }
+                        onReset = { mainApplication.startStopGeoTrigger() }
                     )
                 }
             }
